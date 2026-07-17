@@ -1,0 +1,30 @@
+name: Build Android APK and AAB
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Web2APK Tool
+        run: npm install -g @techiediaries/gbuilder
+
+      - name: Generate APK and AAB Packages
+        run: |
+          gbuilder build --url "https://thegamezonee.netlify.app/" --name "Alfaiz Game Zone" --output ./build
+
+      - name: Upload Finished App Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: Alfaiz-Game-Digital-Files
+          path: ./build/*
