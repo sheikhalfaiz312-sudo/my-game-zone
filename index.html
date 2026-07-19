@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <script src="https://quge5.com/88/tag.min.js" data-zone="261490" async data-cfasync="false"></script>
+    <meta name="monetag" content="34e284eb7fa6a6a53d870c0c97dcadc6">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ALFAIZ PRO MULTIPLAYER & MUSIC HUB</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+        body {
+            background-color: #121214;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+        h1 { color: #00ffcc; text-shadow: 0 0 10px #00ffcc; margin: 5px 0 10px 0; font-size: 1.6rem; text-align: center; }
+        
+        /* MUSIC TOGGLE */
+        .music-ctrl {
+            background: #2a2a35;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .hub-menu {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 15px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .hub-btn {
+            background: #2a2a35;
+            color: white;
+            border: 2px solid #3e3e50;
+            padding: 8px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            flex: 1;
+            min-width: 75px;
+            max-width: 90px;
+            text-align: center;
+        }
+        .hub-btn.active {
+            background: linear-gradient(45deg, #00ffcc, #ff007f);
+            border: none;
+            box-shadow: 0 0 15px #ff007f;
+        }
+
+        /* MODE SELECTOR (1P vs 2P) */
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            width: 100%;
+            justify-content: center;
+        }
+        .mode-btn {
+            background: #1e1e24;
+            border: 1px solid #3e3e50;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .mode-btn.selected {
+            background: #ff007f;
+            border-color: #ff007f;
+            box-shadow: 0 0 8px #ff007f;
+        }
+
+        .game-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 320px;
+        }
+        .game-container.active { display: flex; }
+
+        .ad-zone {
+            width: 100%;
+            max-width: 320px;
+            height: 50px;
+            background: #1e1e24;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #ff007f;
+            border: 1px dashed #3e3e50;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        /* TIC TAC TOE */
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 90px);
+            grid-template-rows: repeat(3, 90px);
+            gap: 10px;
+            background: #1e1e24;
+            padding: 12px;
+            border-radius: 15px;
+        }
+        .cell {
+            background-color: #2a2a35;
+            border: 2px solid #3e3e50;
+            border-radius: 12px;
+            font-size: 2.2rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .cell.X { color: #00ffcc; text-shadow: 0 0 8px #00ffcc; }
+        .cell.O { color: #ff007f; text-shadow: 0 0 8px #ff007f; }
+
+        canvas {
+            background: #1e1e24;
+            border: 2px solid #3e3e50;
+            border-radius: 15px;
+            display: block;
+        }
+
+        .btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            background: linear-gradient(45deg, #ff007f, #7928ca);
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 180px;
+            text-align: center;
+        }
+        .status { margin-bottom: 10px; color: #00ffcc; font-size: 1.05rem; font-weight: bold; text-align: center; min-height: 25px; }
+
+        /* CONTROLS FOR MOBILE (SNAKE P1) */
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(2, 50px);
+            gap: 6px;
+            margin-top: 8px;
+            justify-content: center;
+        }
+        .ctrl-btn {
+            background: #2a2a35;
+            border: 2px solid #3e3e50;
+            color: white;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .ctrl-btn:active { background: #00ffcc; color: #121214; }
+
+        /* CONTROLS FOR P2 SNAKE */
+        .p2-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 45px);
+            gap: 5px;
+            margin-bottom: 8px;
+            justify-content: center;
+        }
+        .p2-ctrl-btn {
+            background: #ff007f;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            padding: 5px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ad-zone" id="top-ad">MONETAG TOP BANNER AD</div>
+
+    <h1>The GAME ZONE</h1>
+    <button class="music-ctrl" onclick="toggleMusic()" id="musicBtn">🎵 Song: OFF (Tap to Play)</button>
+
+    <div class="hub-menu">
+        <button class="hub-btn active" id="btn-ttt" onclick="switchGame('ttt')">TicTac</button>
+        <button class="hub-btn" id="btn-snake" onclick="switchGame('snake')">Snake</button>
+        <button class="hub-btn" id="btn-pong" onclick="switchGame('pong')">Pong</button>
+        <button class="hub-btn" id="btn-bird" onclick="switchGame('bird')">Bird</button>
+    </div>
+
+    <!-- GLOBAL MODE SELECTOR -->
+    <div class="mode-selector" id="globalModeZone">
+        <button class="mode-btn selected" id="mode-1p" onclick="setMode(1)">1 Player (Vs Comp)</button>
+        <button class="mode-btn" id="mode-2p" onclick="setMode(2)">2 Players (Vs Friend)</button>
+    </div>
+
+    <!-- 1. TIC TAC TOE -->
+    <div id="game-ttt" class="game-container active">
+        <div class="status" id="ttt-status">X ki Baari</div>
+        <div class="board">
+            <div class="cell" onclick="tttClick(0)" data-idx="0"></div>
+            <div class="cell" onclick="tttClick(1)" data-idx="1"></div>
+            <div class="cell" onclick="tttClick(2)" data-idx="2"></div>
+            <div class="cell" onclick="tttClick(3)" data-idx="3"></div>
+            <div class="cell" onclick="tttClick(4)" data-idx="4"></div>
+            <div class="cell" onclick="tttClick(5)" data-idx="5"></div>
+            <div class="cell" onclick="tttClick(6)" data-idx="6"></div>
+            <div class="cell" onclick="tttClick(7)" data-idx="7"></div>
+            <div class="cell" onclick="tttClick(8)" data-idx="8"></div>
+        </div>
+        <button class="btn" onclick="resetTTT()">Restart Game</button>
+    </div>
+
+    <!-- 2. SNAKE GAME -->
+    <div id="game-snake" class="game-container">
+        <div class="status" id="snake-score">P1: 0 | P2: 0</div>
+        <div class="p2-controls" id="snakeP2Ctrl" style="display:none;">
+            <button class="p2-ctrl-btn" onclick="changeSnakeDir2('UP')">⬆️ P2</button>
+            <button class="p2-ctrl-btn" onclick="changeSnakeDir2('LEFT')">⬅️</button>
+            <button class="p2-ctrl-btn" onclick="changeSnakeDir2('DOWN')">⬇️</button>
+            <button class="p2-ctrl-btn" onclick="changeSnakeDir2('RIGHT')">➡️</button>
+        </div>
+        <canvas id="snakeCanvas" width="280" height="280"></canvas>
+        <div class="controls">
+            <div></div><button class="ctrl-btn" onclick="changeSnakeDir('UP')">⬆️</button><div></div>
+            <button class="ctrl-btn" onclick="changeSnakeDir('LEFT')">⬅️</button><button class="ctrl-btn" onclick="changeSnakeDir('DOWN')">⬇️</button><button class="ctrl-btn" onclick="changeSnakeDir('RIGHT')">➡️</button>
+        </div>
+        <button class="btn" onclick="initSnake()">Restart Game</button>
+    </div>
+
+    <!-- 3. PING PONG GAME -->
+    <div id="game-pong" class="game-container">
+        <div class="status" id="pong-score">You: 0 | Comp: 0</div>
+        <canvas id="pongCanvas" width="280" height="320"></canvas>
+        <button class="btn" onclick="initPong()">Restart Game</button>
+    </div>
+
+    <!-- 4. FLAPPY BIRD GAME -->
+    <div id="game-bird" class="game-container">
+        <div class="status" id="bird-score">Score: 0</div>
+        <canvas id="birdCanvas" width="280" height="320"></canvas>
+        <button class="btn" onclick="initBird()">Restart Game</button>
+    </div>
+
+    <div class="ad-zone" id="bottom-ad">MONETAG BOTTOM BANNER AD</div>
+
+    <script>
+        // --- RETRO BACKGROUND MUSIC ENGINE ---
+        let audioCtx;
+        let musicInterval;
+        let isMusicPlaying = false;
+        let noteIndex = 0;
+        const melody = [261, 293, 329, 349, 392, 349, 329, 261, 293, 293, 329, 261, 392, 349, 329, 440];
+
+        function initAudio() {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function toggleMusic() {
+            initAudio();
+            if (isMusicPlaying) {
+                clearInterval(musicInterval);
+                isMusicPlaying = false;
+                document.getElementById('musicBtn').textContent = "🎵 Song: OFF (Tap to Play)";
+            } else {
+                isMusicPlaying = true;
+                document.getElementById('musicBtn').textContent = "🎵 Song: ON 🌟";
+                musicInterval = setInterval(() => {
+                    playSongNote(melody[noteIndex % melody.length]);
+                    noteIndex++;
+                }, 220);
+            }
+        }
+
+        function playSongNote(freq) {
+            if(!isMusicPlaying) return;
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            } catch(e){}
+        }
+
+        function playSound(type) {
+            initAudio();
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                if(type==='hit') {
+                    osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.06);
+                } else if(type==='score') {
+                    osc.frequency.setValueAtTime(550, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(850, audioCtx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+                } else if(type==='over') {
+                    osc.frequency.setValueAtTime(280, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+                }
+            } catch(e){}
+        }
+
+        let snakeInterval, pongInterval, birdInterval;
+        let activeGame = 'ttt';
+        let currentGameMode = 1;
+
+        function setMode(num) {
+            currentGameMode = num;
+            document.getElementById('mode-1p').classList.toggle('selected', num === 1);
+            document.getElementById('mode-2p').classList.toggle('selected', num === 2);
+            playSound('hit');
+            switchGame(activeGame);
+        }
+
+        function switchGame(game) {
+            initAudio();
+            clearInterval(snakeInterval); clearInterval(pongInterval); clearInterval(birdInterval);
+            document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.hub-menu .hub-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`game-${game}`).classList.add('active');
+            document.getElementById(`btn-${game}`).classList.add('active');
+            activeGame = game;
+
+            document.getElementById('snakeP2Ctrl').style.display = (game==='snake' && currentGameMode===2) ? 'grid' : 'none';
+            document.getElementById('globalModeZone').style.display = (game==='bird') ? 'none' : 'flex';
+
+            if(game === 'ttt') { resetTTT(); }
+            if(game === 'snake') { initSnake(); }
+            if(game === 'pong') { initPong(); }
+            if(game === 'bird') { initBird(); }
+        }
+
+        // --- TIC TAC TOE ---
+        let tttState = ["","","","","","","","",""]; let tttPlayer = "X"; let tttActive = true;
+        function tttClick(idx) {
+            if(tttState[idx] !== "" || !tttActive) return;
+            tttState[idx] = tttPlayer;
+            renderTTT();
+            if(checkTTTWin(tttPlayer)) {
+                confetti({ particleCount: 50 }); playSound('score');
+                document.getElementById('ttt-status').textContent = `${tttPlayer} Jeet Gaya! 🎉`; tttActive = false;
+                return;
+            }
+            if(!tttState.includes("")) { document.getElementById('ttt-status').textContent = "Match Draw! 🤝"; tttActive = false; return; }
+
+            if(currentGameMode === 1) {
+                tttActive = false;
+                document.getElementById('ttt-status').textContent = "Computer ki baari...";
+                setTimeout(() => {
+                    let emptyIdxs = [];
+                    tttState.forEach((val, i) => { if(val === "") emptyIdxs.push(i); });
+                    let randomIdx = emptyIdxs[Math.floor(Math.random() * emptyIdxs.length)];
+                    tttState[randomIdx] = "O";
+                    renderTTT();
+                    if(checkTTTWin("O")) {
+                        playSound('over');
+                        document.getElementById('ttt-status').textContent = "Computer Jeet Gaya! 🤖";
+                    } else if(!tttState.includes("")) {
+                        document.getElementById('ttt-status').textContent = "Match Draw! 🤝";
+                    } else {
+                        tttActive = true;
+                        document.getElementById('ttt-status').textContent = "Aapki Baari (X)";
+                    }
+                }, 400);
+            } else {
+                tttPlayer = tttPlayer === "X" ? "O" : "X";
+                document.getElementById('ttt-status').textContent = `${tttPlayer} ki Baari`;
+            }
+        }
+        function renderTTT() {
+            tttState.forEach((val, i) => {
+                let cell = document.querySelector(`[data-idx='${i}']`);
+                cell.textContent = val; cell.className = `cell ${val}`;
+            });
+            playSound('hit');
+        }
+        function checkTTTWin(p) {
+            const conds = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            return conds.some(c => tttState[c[0]]===p && tttState[c[1]]===p && tttState[c[2]]===p);
+        }
+        function resetTTT() {
+            tttState = ["","","","","","","","",""]; tttPlayer = "X"; tttActive = true;
+            document.getElementById('ttt-status').textContent = "Aapki Baari (X)";
+            document.querySelectorAll('.cell').forEach(c => { c.textContent = ""; c.className = "cell"; });
+        }
+
+        // --- SNAKE GAME ---
+        const sCanvas = document.getElementById('snakeCanvas'); const sCtx = sCanvas.getContext('2d');
+        let snake1, snake2, snakeDir1, snakeDir2, food, score1, score2, snakeGameOver;
+        function initSnake() {
+            clearInterval(snakeInterval);
+            snake1 = [{x: 60, y: 140}, {x: 40, y: 140}]; snakeDir1 = 'RIGHT'; score1 = 0;
+            snake2 = [{x: 200, y: 60}, {x: 200, y: 80}]; snakeDir2 = 'DOWN'; score2 = 0;
+            snakeGameOver = false; spawnFood();
+            updateSnakeScoreText();
+            snakeInterval = setInterval(updateSnake, 200);
+        }
+        function updateSnakeScoreText() {
+            if(currentGameMode === 1) document.getElementById('snake-score').textContent = "Score: " + score1;
+            else document.getElementById('snake-score').textContent = `P1: ${score1} | P2: ${score2}`;
+        }
+        function spawnFood() { food = { x: Math.floor(Math.random()*14)*20, y: Math.floor(Math.random()*14)*20 }; }
+        function changeSnakeDir(dir) { if(dir==='LEFT' && snakeDir1!=='RIGHT') snakeDir1='LEFT'; if(dir==='RIGHT' && snakeDir1!=='LEFT') snakeDir1='RIGHT'; if(dir==='UP' && snakeDir1!=='DOWN') snakeDir1='UP'; if(dir==='DOWN' && snakeDir1!=='UP') snakeDir1='DOWN'; playSound('hit');}
+        function changeSnakeDir2(dir) { if(dir==='LEFT' && snakeDir2!=='RIGHT') snakeDir2='LEFT'; if(dir==='RIGHT' && snakeDir2!=='LEFT') snakeDir2='RIGHT'; if(dir==='UP' && snakeDir2!=='DOWN') snakeDir2='DOWN'; if(dir==='DOWN' && snakeDir2!=='UP') snakeDir2='UP'; playSound('hit');}
+        function updateSnake() {
+            if(snakeGameOver) return;
+            let head1 = {x: snake1[0].x, y: snake1[0].y};
+            if(snakeDir1==='RIGHT') head1.x += 20; if(snakeDir1==='LEFT') head1.x -= 20; if(snakeDir1==='UP') head1.y -= 20; if(snakeDir1==='DOWN') head1.y += 20;
+            if(head1.x < 0 || head1.x >= 280 || head1.y < 0 || head1.y >= 280 || snake1.some(s=>s.x===head1.x && s.y===head1.y)) { triggerSnakeEnd("P2 / Comp Won!"); return; }
+            snake1.unshift(head1);
+            if(head1.x === food.x && head1.y === food.y) { score1++; playSound('score'); spawnFood(); updateSnakeScoreText(); } else { snake1.pop(); }
+
+            if(currentGameMode === 1) {
+                let headAI = snake2[0];
+                if(headAI.x < food.x && snakeDir2 !== 'LEFT') snakeDir2 = 'RIGHT';
+                else if(headAI.x > food.x && snakeDir2 !== 'RIGHT') snakeDir2 = 'LEFT';
+                else if(headAI.y < food.y && snakeDir2 !== 'UP') snakeDir2 = 'DOWN';
+                else if(headAI.y > food.y && snakeDir2 !== 'DOWN') snakeDir2 = 'UP';
+            }
+            let head2 = {x: snake2[0].x, y: snake2[0].y};
+            if(snakeDir2==='RIGHT') head2.x += 20; if(snakeDir2==='LEFT') head2.x -= 20; if(snakeDir2==='UP') head2.y -= 20; if(snakeDir2==='DOWN') head2.y += 20;
+            if(head2.x < 0 || head2.x >= 280 || head2.y < 0 || head2.y >= 280 || snake2.some(s=>s.x===head2.x && s.y===head2.y)) { triggerSnakeEnd("P1 / You Won! 🎉"); return; }
+            snake2.unshift(head2);
+            if(head2.x === food.x && head2.y === food.y) { score2++; playSound('score'); spawnFood(); updateSnakeScoreText(); } else { snake2.pop(); }
+
+            sCtx.fillStyle = '#1e1e24'; sCtx.fillRect(0,0,280,280);
+            sCtx.fillStyle = '#ffffff'; sCtx.fillRect(food.x, food.y, 18, 18);
+            sCtx.fillStyle = '#00ffcc'; snake1.forEach(s => sCtx.fillRect(s.x, s.y, 18, 18));
+            sCtx.fillStyle = '#ff007f'; snake2.forEach(s => sCtx.fillRect(s.x, s.y, 18, 18));
+        }
+        function triggerSnakeEnd(msg) { playSound('over'); clearInterval(snakeInterval); snakeGameOver = true; document.getElementById('snake-score').textContent = "Over! " + msg; }
+// --- SNAKE SWIPE CONTROLS FOR MOBILE ---
+let touchStartX = 0, touchStartY = 0;
+let touchEndX = 0, touchEndY = 0;
+
+document.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+
+document.addEventListener('touchend', function(e) {
+    touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
+    handleSnakeSwipe();
+}, { passive: true });
+
+function handleSnakeSwipe() {
+    let diffX = touchEndX - touchStartX;
+    let diffY = touchEndY - touchStartY;
+
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+        if (Math.abs(diffX) > 30) {
+            if (diffX > 0 && snakeDir1 !== 'LEFT') snakeDir1 = 'RIGHT';
+            else if (diffX < 0 && snakeDir1 !== 'RIGHT') snakeDir1 = 'LEFT';
+        }
+    } else {
+        if (Math.abs(diffY) > 30) {
+            if (diffY > 0 && snakeDir1 !== 'UP') snakeDir1 = 'DOWN';
+            else if (diffY < 0 && snakeDir1 !== 'DOWN') snakeDir1 = 'UP';
+        }
+    }
+}
+        // --- PING PONG ---
+        const pCanvas = document.getElementById('pongCanvas'); const pCtx = pCanvas.getContext('2d');
+        let ball, padP1, padP2, bXDir, bYDir, scrP1, scrP2;
+        function initPong() {
+            clearInterval(pongInterval); ball = {x: 140, y: 160}; padP1 = 110; padP2 = 110; bXDir = 2.5; bYDir = 2.5; scrP1 = 0; scrP2 = 0;
+            document.getElementById('pong-score').textContent = currentGameMode===1 ? "You: 0 | Comp: 0" : "P1: 0 | P2: 0";
+            
+            pCanvas.addEventListener('touchmove', (e) => {
+                let rect = pCanvas.getBoundingClientRect();
+                for (let i = 0; i < e.touches.length; i++) {
+                    let tY = e.touches[i].clientY - rect.top;
+                    let tX = e.touches[i].clientX - rect.left - 30;
+                    if(tX < 0) tX = 0; if(tX > 220) tX = 220;
+                    if(tY > 160) padP1 = tX;
+                    else if(currentGameMode === 2) padP2 = tX;
+                }
+                e.preventDefault();
+            }, {passive: false});
+            pongInterval = setInterval(updatePong, 1000/60);
+        }
+        function updatePong() {
+            ball.x += bXDir; ball.y += bYDir;
+            if(ball.x <= 6 || ball.x >= 274) { bXDir *= -1; playSound('hit'); }
+            
+            if(currentGameMode === 1) {
+                if(padP2 + 30 < ball.x) padP2 += 2.2; else if(padP2 + 30 > ball.x) padP2 -= 2.2;
+            }
+
+            if(ball.y >= 300 && ball.x >= padP1 && ball.x <= padP1 + 60) { bYDir *= -1; ball.y = 299; playSound('hit'); }
+            if(ball.y <= 20 && ball.x >= padP2 && ball.x <= padP2 + 60) { bYDir *= -1; ball.y = 21; playSound('hit'); }
+
+            if(ball.y > 320) { scrP2++; playSound('score'); ball = {x: 140, y: 160}; bYDir = -2.5; }
+            if(ball.y < 0) { scrP1++; playSound('score'); ball = {x: 140, y: 160}; bYDir = 2.5; }
+            document.getElementById('pong-score').textContent = currentGameMode===1 ? `You: ${scrP1} | Comp: ${scrP2}` : `P1: ${scrP1} | P2: ${scrP2}`;
+
+            pCtx.fillStyle = '#1e1e24'; pCtx.fillRect(0,0,280,320);
+            pCtx.fillStyle = '#ff007f'; pCtx.fillRect(padP2, 10, 60, 10);
+            pCtx.fillStyle = '#00ffcc'; pCtx.fillRect(padP1, 300, 60, 10);
+            pCtx.fillStyle = '#ffffff'; pCtx.beginPath(); pCtx.arc(ball.x, ball.y, 6, 0, Math.PI*2); pCtx.fill();
+        }
+
+        // --- FLAPPY BIRD ---
+        const bCanvas = document.getElementById('birdCanvas'); const bCtx = bCanvas.getContext('2d');
+        let birdY, birdVelocity, pipes, bScore, bGameOver;
+        function initBird() {
+            clearInterval(birdInterval); birdY = 150; birdVelocity = 0; pipes = []; bScore = 0; bGameOver = false;
+            document.getElementById('bird-score').textContent = "Score: " + bScore;
+            let jump = () => { if(activeGame === 'bird') { birdVelocity = -4.5; playSound('hit'); } };
+            window.onclick = jump; window.ontouchstart = jump;
+            birdInterval = setInterval(updateBird, 1000/30);
+        }
+        function updateBird() {
+            if(bGameOver) return;
+            birdVelocity += 0.25; birdY += birdVelocity;
+            if(birdY > 310 || birdY < 0) { triggerBirdGameOver(); }
+            if(pipes.length === 0 || pipes[pipes.length - 1].x < 160) {
+                let gap = 90; let topH = Math.floor(Math.random() * 120) + 30;
+                pipes.push({ x: 280, top: topH, bottom: 320 - topH - gap });
+            }
+            pipes.forEach(pipe => {
+                pipe.x -= 2;
+                if(pipe.x === 40) { bScore++; playSound('score'); document.getElementById('bird-score').textContent = "Score: " + bScore; }
+                if(pipe.x < 50 && pipe.x + 30 > 30 && (birdY < pipe.top || birdY > 320 - pipe.bottom)) { triggerBirdGameOver(); }
+            });
+            pipes = pipes.filter(p => p.x > -40);
+            bCtx.fillStyle = '#1e1e24'; bCtx.fillRect(0,0,280,320);
+            bCtx.fillStyle = '#00ffcc'; bCtx.beginPath(); bCtx.arc(40, birdY, 8, 0, Math.PI*2); bCtx.fill();
+            bCtx.fillStyle = '#ff007f'; pipes.forEach(p => { bCtx.fillRect(p.x, 0, 30, p.top); bCtx.fillRect(p.x, 320 - p.bottom, 30, p.bottom); });
+        }
+        function triggerBirdGameOver() { playSound('over'); clearInterval(birdInterval); bGameOver = true; document.getElementById('bird-score').textContent = "Game Over! Score: " + bScore; }
+    </script>
+</body>
+</html>
